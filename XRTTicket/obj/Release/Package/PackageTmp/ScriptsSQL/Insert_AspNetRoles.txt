@@ -1,0 +1,5 @@
+﻿INSERT INTO [dbo].[AspNetRoles] ([Id], [Name]) VALUES (N'Analyst', N'Analyst');
+INSERT INTO [dbo].[AspNetRoles] ([Id], [Name]) VALUES (N'SuperUser', N'SuperUser');
+INSERT INTO [dbo].[AspNetRoles] ([Id], [Name]) VALUES (N'User', N'User');
+INSERT INTO [dbo].[AspNetRoles] ([Id], [Name]) VALUES (N'SuperAnalyst', N'SuperAnalyst');
+INSERT INTO [dbo].[AspNetRoles] ([Id], [Name]) VALUES (N'ADM', N'ADM');

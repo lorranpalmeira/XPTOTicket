@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "Company List";
+    Layout = "~/Views/Shared/Add/_AddDefault.cshtml";
+    var itemjs = 0;
+}
+
+
+
+<h2>CompanyList</h2>
+
+
+@section Header{
+    
+    <th>
+        #
+    </th>
+    <th>
+        Company Name
+    </th>
+
+    <th>
+        Grade
+    </th>
+    <th>
+        Flag
+    </th>
+    <th>
+        Phone
+    </th>
+
+
+}
+
+
+@section  ModalForm{
+    
+    <div class="form-group">
+        <input type="text" class="form-control invisible" id="CompanyId" />
+    </div>
+    
+    <div class="form-group">
+        <label for="CompanyName">CompanyName</label>
+        <input type="text" class="form-control" id="CompanyName" placeholder="Company Name" />
+    </div>
+    <div class="form-group">
+        <label for="Grade">Grade</label>
+        <input type="text" class="form-control" id="Grade" placeholder="Grade" />
+    </div>
+    <div class="form-group">
+        
+        <label for="Flag">Flag</label>
+        <select class="form-control" name="Flag" id="Flag">
+             <option value="Green">Green</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Red">Red</option>
+        </select>
+
+    </div>
+    <div class="form-group">
+        <label for="Phone">Phone</label>
+        <input type="text" class="form-control" id="Phone"  placeholder="Phone" />
+    </div>
+
+}
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+@section Scripts{
+    <script>
+                
+        $(document).ready(function () {
+            $(".dropdown-toggle").dropdown();
+
+            $("[href]").each(function () {
+                if (this.href == window.location.href) {
+                    $(this).addClass("active");
+                }
+            });
+
+        });
+        
+        var quantMaxByPage ='@ViewBag.QuantMaxLinhasPorPagina';
+        var quantPage = '@ViewBag.QuantPages';
+        var itemjs = '@itemjs';
+        var url = '/Company/GetAllCompaniesPagination';
+    </script>
+
+
+
+    <script src="~/Scripts/Add/newCompany.js"></script>
+}

@@ -1,0 +1,73 @@
+﻿@model IList<XRTTicket.Models.Ticket.ViewModelTicket>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = ViewBag.Title;
+    var itemjs = 0;
+}
+
+<link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+    td, th {
+        border: 1px solid #111;
+        padding: 6px;
+    }
+
+    th {
+        font-weight: 700;
+    }
+</style>
+
+
+<h2>@ViewBag.Title</h2>
+
+@RenderBody()
+
+<div class="container" style="margin-left:-25px">
+
+    <table class="table table-hover table-bordered sortable" id="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Priority</th>
+                <th>Opened Date</th>
+                <th>SLA</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @{var linha = 0;
+                foreach (var item in Model)
+                {
+                    linha++;
+                    if (linha <= ViewBag.QuantMaxLinhasPorPagina)
+                    {
+                        <tr>
+                            <td>@Html.ActionLink(item.TicketId.ToString(), "TicketUpdate", new { id = item.TicketId }) </td>
+                            <td>@item.Title </td>
+                            <td>@item.PriorityId</td>
+                            <td>@item.OpenDateAndTime</td>
+                            <td>@item.SlaExpiration</td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+
+    </table>
+
+</div>
+
+@Html.Partial("~/Views/Shared/Ticket/_Pagination.cshtml")
+
+
+
+<script>
+    var quantPage = '@ViewBag.QuantPages';
+    var itemjs = '@itemjs';
+    var url = '/Ticket/GetListItens';
+</script>
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/moment.min.js"></script>
+<script src="~/Scripts/sortable.js"></script>
+<script src="~/Scripts/Ticket/Pagination.js"></script>

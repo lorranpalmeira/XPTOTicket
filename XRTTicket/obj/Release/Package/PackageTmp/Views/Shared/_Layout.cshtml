@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket</title>
+    <link rel="icon" style="border-radius:10px" href="~/Image/favicon.ico" />
+    @Styles.Render("~/Content/css")
+        @*
+            Styles.Render("~/Content/css")
+            Scripts.Render("~/bundles/modernizr")
+        *@
+
+
+
+</head>
+<body>
+   
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="/Home">
+            <img src="~/Image/XRT_logo.png" /> </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarColor01">
+            <ul class="navbar-nav mr-auto">
+                @if (User.Identity.IsAuthenticated)
+                {
+
+                    <li class="nav-item ">
+                        @Html.ActionLink("New Ticket", "NewTicket", "Ticket", null, new { @class = "nav-link" })
+                    </li>
+                    <li class="nav-item">
+                        @Html.ActionLink("Search Ticket", "SearchTicket", "Ticket", null, new { @class = "nav-link" })
+                    </li>
+
+                    if (User.IsInRole("User") || User.IsInRole("SuperUser"))
+                    {
+                        <li class="nav-item">
+                            @Html.ActionLink("My Tickets", "MyTickets", "Ticket", null, new { @class = "nav-link" })
+                        </li>
+                            <li class="nav-item">
+                                @Html.ActionLink("Closed Tickets", "ClosedTickets", "Ticket", null, new { @class = "nav-link" })
+                            </li>
+                    }
+
+                }
+
+                @if (User.IsInRole("Analyst") || User.IsInRole("SuperAnalyst"))
+                {
+                    <li class="nav-item"> @Html.ActionLink("Ticket List", "TicketList", "Ticket", null, new { @class = "nav-link" })</li>
+                    <li class="nav-item">@Html.ActionLink("My Queue", "Queue", "Ticket", null, new { @class = "nav-link" })</li>
+
+                }
+
+                @if (User.IsInRole("SuperAnalyst") || User.IsInRole("ADM"))
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Register</a>
+                        <div class="dropdown-menu" x-placement="bottom-start" style="position: absolute; transform: translate3d(0px, 38px, 0px); top: 0px; left: 0px; will-change: transform;">
+                            <a class="dropdown-item" href="@Url.Action("Register", "Account")">User</a>
+                            <a class="dropdown-item" href="@Url.Action("CompanyList", "Company")">Company</a>
+                            <a class="dropdown-item" href="#">Patch</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">Others</a>
+                        </div>
+                    </li>
+
+                }
+
+               </ul>
+
+                @if (User.IsInRole("SuperAnalyst") || User.IsInRole("Analyst"))
+                {
+                    <form method="post" action="/Ticket/TicketUpdate">
+                        <input name="id" type="text" placeholder="Search Ticket" size="10" />
+                        <input type="submit" value="Search" style="margin-right:10px" />
+                    </form>
+                }
+
+
+
+               @if (User.Identity.IsAuthenticated)
+               {
+                                
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="nav-item">
+                            <a href="@Url.Action("Login", "Account")" class="nav-link">
+                                Logout
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                Hello @User.Identity.Name
+                            </a>
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    <ul class="nav navbar-nav navbar-right">
+
+                        <li class="nav-item">
+                            <a href="@Url.Action("Login", "Account")" class="nav-link">
+                                Login
+                            </a>
+                        </li>
+                    </ul>
+
+                }
+
+
+
+
+    </div>
+</nav>
+    
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - XRT Ticket Application</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+
+    @*
+    Scripts.Render("~/bundles/bootstrap")
+
+    *@
+
+    @RenderSection("scripts", required: false)
+
+    
+    <script>
+       $(document).ready(function () {
+           $(".dropdown-toggle").dropdown();
+
+
+                        
+            $("[href]").each(function () {
+                if (this.href == window.location.href) {
+                    $(this).addClass("active");
+                }
+            });
+            
+
+
+        });
+        
+       
+       
+    </script>
+
+</body>
+</html>

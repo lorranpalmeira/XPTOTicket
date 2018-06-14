@@ -1,0 +1,34 @@
+﻿@model XRTTicket.Models.Ticket.ViewModelTicket
+@{
+    Layout = "~/Views/Shared/_TicketForm.cshtml";
+    ViewBag.Title = "NewTicket";
+    ViewBag.Url = "SaveTicket";
+
+}
+
+<br />
+
+@section DescriptionLabel{
+    <label for="description">Description</label>    
+}
+
+
+
+@section Scripts{
+
+    <script>
+        var isNewTicket = true;
+        var ticketId = @ViewBag.NextTicket;
+
+    </script>
+
+
+}
+
+ 
+
+
+
+
+
+

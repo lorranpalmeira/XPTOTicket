@@ -1,0 +1,220 @@
+﻿@model IList<XRTTicket.Models.Ticket.ViewModelTicket>
+@{
+    ViewBag.Title = "_TicketSearch";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var itemjs = 0;
+}
+
+
+<style>
+    .margim-class {
+        margin-top: 20px;
+    }
+
+    .btn-sub {
+        margin: 5px;
+    }
+
+    .space {
+        padding: 4px;
+    }
+</style>
+
+<br />
+
+@using (Ajax.BeginForm("SearchTicket", "Ticket", new AjaxOptions { HttpMethod = "Post", UpdateTargetId = "toUpdate" }, new { @class = "form-inline" }))
+{
+    @Html.AntiForgeryToken()
+
+<div class="container">
+    <div id="accordion01" style="margin-left:-26px">
+        <div class="card">
+            <div class="card-header" id="headingOne">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        Simple Filter
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseOne" class="collapse hide" aria-labelledby="headingOne" data-parent="#accordion01">
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="form-group">
+                            <div class="col-xs-3 space">
+                                <label for="ticketid">Ticket Id</label>
+                                <input name="ticketid" for="ticketid" id="ticketId" class="form-control" />
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-xs-3 space">
+                                <label for="opendatefrom">Opened Date From </label>
+                                <input type="date" for="ticketid" id="opendatefrom" name="opendatefrom" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-3 space">
+                                <label for="opendateto">Opened Date To </label>
+                                <input type="date" for="opendateto" id="opendateto" name="opendateto" class="form-control" />
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-xs-3 space">
+                                <label for="closedatefrom">Date Closed From </label>
+                                <input type="date" for="closedatefrom" id="closedatefrom" name="closedatefrom" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-xs-3 space">
+                                <label for="closedateto">Date Closed To </label>
+                                <input type="date" for="closedateto" id="closedateto" name="closedateto" class="form-control" />
+                            </div>
+                        </div>
+
+                   </div>
+
+
+
+
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="title">Title</label>
+                                    <input for="title" id="title" name="title" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="description">Description Contains </label>
+                                    <input for="description" id="description" name="description" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="StatusId">Status </label>
+                                    <select class="form-control" name="StatusId" id="StatusId">
+                                        @foreach (var item in ViewBag.Status)
+                                        {
+                                            <option value="@item.StatusId">@item.StatusName</option>
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+
+
+    <br />
+            
+    <div class="container">
+        <div id="accordion02" style="margin-left:-26px">
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                            Advanced Filter
+                        </button>
+                    </h5>
+                </div>
+
+                <div id="collapseTwo" class="collapse hide" aria-labelledby="headingTwo" data-parent="#accordion02">
+                    <div class="card-body">
+
+
+                        <div class="row">
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="TicketType">TicketType</label>
+                                    <select class="form-control" name="TicketTypeId" id="TicketTypeId">
+                                        @foreach (var item in ViewBag.TicketType)
+                                        {
+                                            <option value="@item.TicketTypeId">@item.TicketTypeName</option>
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="PriorityId">Priority </label>
+                                    <select class="form-control" name="PriorityId" id="PriorityId">
+                                        <option selected="selected"></option>
+                                        @foreach (var item in ViewBag.Priority)
+                                        {
+                                            <option value="@item.PriorityId">@item.PriorityLevel</option>
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-xs-3 space">
+                                    <label for="IdExternal">Id External</label>
+                                    <input for="IdExternal" id="IdExternal" name="IdExternal" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+
+                        @RenderSection("Analyst", false)
+
+                        <div style="margin-left:30px; margin-top:0px">
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <br />
+    <div class="container" style="margin-left:-30px">
+        <input type="submit" class="btn btn-default btn-sub" value="Submit" id="btn-submit" />
+    </div>
+
+   
+
+}
+
+
+<div class="container margim-class" style="margin-left:-25px" id="toUpdate">
+    @{ Html.RenderPartial("/Views/Shared/Ticket/_PartialViewSearchTicketList.cshtml", Model, new ViewDataDictionary(ViewBag)); }
+</div>
+
+
+
+
+<script src="~/Scripts/moment.min.js"></script>
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+<script src="~/Scripts/sortable.js"></script>
+
+
+
+
+
+
+

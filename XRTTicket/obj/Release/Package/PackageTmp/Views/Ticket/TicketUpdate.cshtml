@@ -1,0 +1,186 @@
+﻿@model XRTTicket.Models.Ticket.ViewModelTicket
+@{
+    Layout = "~/Views/Shared/_TicketForm.cshtml";
+    ViewBag.Title = "Ticket Edit";
+    ViewBag.Url = "SaveTicketAjaxUpdate";
+
+}
+
+<link href="~/Content/toastr.min.css" rel="stylesheet" />
+<link href="~/Content/Ticket/TicketStyle.css" rel="stylesheet" />
+
+
+@section Status{
+    
+<div class="col-xs-3 space" id="div-status">
+    @Html.LabelFor(m => m.StatusId, "Status")
+    @Html.DropDownList("StatusId", null, htmlAttributes: new { @class = "form-control" })
+    @Html.ValidationMessageFor(m => m.StatusId, "", new { @class = "text-danger" })
+    <label id="message-status"></label>
+</div>
+    
+}
+
+@section SlaExpire{
+<div class="col-xs-3 space" id="div-id">
+    @Html.LabelFor(m => m.SlaExpiration, "Sla Expiration")
+    @Html.TextBoxFor(m => m.SlaExpiration, new { @class = "form-control ", @readonly = "readonly", id = "SlaExpiration" })
+    <label id="message-slaExpire"></label>
+</div>
+  }
+
+@section Designated{
+<div class="col-xs-3 space left-margin" id="div-designated">
+    @Html.LabelFor(m => m.UserId, "Designated")
+    
+   
+    @Html.DropDownList("UserId",null, htmlAttributes: new { @class = "form-control" })
+    @Html.ValidationMessageFor(m => m.UserId, "", new { @class = "text-danger" })
+    <label id="message-designated"></label>
+</div>
+
+}
+
+@section IdExternal{
+    <div class="col-xs-3 space" id="div-IdExternal">
+        @Html.LabelFor(m => m.IdExternal, "Id External")
+        @Html.TextBoxFor(m => m.IdExternal, new { @class = "form-control col-md-12", id = "field-IdExternal" })
+        @Html.ValidationMessageFor(m => m.IdExternal, "", new { @class = "text-danger" })
+        <label id="message-IdExternal"></label>
+    </div>
+
+}
+
+@section Duplicate{
+    <div class="col-xs-3 space" id="div-duplicate">
+        @Html.LabelFor(m => m.DuplicatedOf, "Duplicate Of")
+        @Html.TextBoxFor(m => m.DuplicatedOf, new { @class = "form-control col-md-12", id = "field-duplicate" })
+        @Html.ValidationMessageFor(m => m.DuplicatedOf, "", new { @class = "text-danger" })
+        <label id="message-duplicate"></label>
+    </div>
+
+}
+
+@if (User.IsInRole("Analyst") || User.IsInRole("SuperAnalyst"))
+{
+
+    @section IsLike{
+        <div id="isLike" style="display: none;">
+            <table class="table table-hover table-bordered" >
+                <thead>
+                 <tr>
+                     <th>#</th>
+                     <th>Title</th>
+                 </tr>
+
+                   
+                </thead>
+                <tbody id="tableIsLike">
+                   
+                   
+                </tbody>
+            </table>
+        </div>
+        
+        } 
+
+
+
+    @section SendToUser{
+        <div>
+     
+            <input type="checkbox" name="sendtouser" id="sendtouser" value="sendtouser"> Public <br />
+        </div>
+    }
+}
+
+
+@section Iterations{
+<div id="div-iterations">
+    @foreach (var item in ViewBag.Iterations)
+    {
+        if ((item.SendToUser == true && User.IsInRole("User")
+            || User.IsInRole("SuperUser"))
+            || User.IsInRole("Analyst") || User.IsInRole("SuperAnalyst")
+            )
+        {
+            <div class="form-group" id="div-iteration">
+                <label>By @item.AlteredBy - @item.Date</label>
+                <textarea readonly class="form-control field-iteration" id="field-iteration">
+                    @item.ActionDescription
+                </textarea>
+                <label id="message-iteration"></label>
+                @if (User.IsInRole("Analyst") || User.IsInRole("SuperAnalyst"))
+                {
+
+                    if (@item.SendToUser == true)
+                    {
+                        <input checked="checked" id="sendtouser" name="sendtouser" type="checkbox" disabled />
+                    }
+                    else
+                    {
+                        <input id="sendtouser" name="sendtouser" type="checkbox"  disabled />
+                    }
+                    <label for="sendtouser" style="padding:0px">Public</label>
+
+
+
+                }
+                <br />
+
+               
+
+                @{
+                    if (!string.IsNullOrEmpty(item.Files))
+                    {
+                        var divider = item.Files.LastIndexOf("/");
+                        var file = item.Files.Substring(divider+1);
+                                            
+                        <a href="@Url.Action("DownloadFile","Ticket", new { path= item.Files })" id="file" style="padding:0px" class="btn btn-link">@file</a>
+                        <br />
+                    }
+
+                }
+
+                
+                
+
+
+            </div>
+            
+
+
+
+        }
+
+    }
+</div>
+
+
+}
+
+
+
+
+@section Scripts{
+
+    
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/jquery.ui.widget.js"></script>
+    <script src="~/Scripts/jquery.fileupload.js"></script>
+    <script src="~/Scripts/toastr.min.js"></script>
+    <script src="~/Scripts/moment.min.js"></script>
+    <script src="~/Scripts/Ticket/UpdateTicket.js"></script>
+    <script src="~/Scripts/Ticket/IsLikeLoad.js"></script>
+    <script>
+        var isNewTicket = false;
+        var AsyncTextArea = '@Url.Action("SaveTicketAjaxUpdate", "Ticket")';
+        var isLikeAjax = '@Url.Action("LikeTicketAjax", "Ticket")';
+    </script>
+
+
+
+}
+
+
+

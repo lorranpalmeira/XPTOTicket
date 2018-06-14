@@ -1,0 +1,35 @@
+﻿.hide-span {
+    display:none;
+} 
+.show-span {
+    display:block;
+} 
+
+.fail {
+    color:red;
+}
+
+.icon-success {
+    color:green;
+}
+
+.icon-error {
+    color:green;
+}
+
+.margim-element {
+    margin:20px;
+    
+}
+
+.space {
+    padding :3px;
+}
+
+.left-margin {
+    margin-left:15px;
+}
+
+.bottom-margin {
+    margin-bottom:0px;
+}

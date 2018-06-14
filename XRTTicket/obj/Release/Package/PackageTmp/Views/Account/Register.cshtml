@@ -1,0 +1,120 @@
+﻿
+<script src="~/Scripts/jquery-1.10.2.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+<link href="~/Content/yeti.bootstrap.css" rel="stylesheet" />
+
+<script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+<script src="~/Scripts/Add/newUser.js"></script>
+<script src="~/Scripts/bootbox.min.js"></script>
+
+
+<div class="container">
+    <h2>Register New Users</h2>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add</button><br /><br />
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+               
+                <th>
+                    UserName
+                </th>
+                <th>
+                    Email
+                </th>
+               
+                <th>
+                    Company
+                </th>
+                <th>
+                    Role
+                </th>
+            </tr>
+        </thead>
+        <tbody class="tbody"></tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                @*<button type="button" class="close" data-dissmiss="modal"><span aria-hidden="true">&times;</span></button>*@
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                
+            </div>
+            <div class="modal-body">
+                <form>
+                  @Html.ValidationSummary(true)
+                    <div class="form-group">
+                        <label for="UserName">UserName</label>
+                        <input type="text" class="form-control" id="UserName" name="UserName" placeholder="Username" />
+                        <span id="spanUserName"></span>
+                        
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <input type="text" class="form-control" id="Email" name="Email" placeholder="Email" />
+                        @Html.ValidationMessage("Email", "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        <label for="Senha">Password</label>
+                        <input type="password" class="form-control" id="Password" name="Password" placeholder="Password" />
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="ConfirmPassword">Confirm Password</label>
+                        <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" placeholder="Confirm Password" />
+                        @Html.ValidationMessage("ConfirmPassword", "", new { @class = "text-danger" })
+                    </div>
+                    <div class="form-group">
+                        <label for="CompanyId">Company</label>
+                        <select class="form-control" name="CompanyId" id="CompanyId">
+                            <option selected="selected"></option>
+                            @foreach (var item in ViewBag.CompanyId)
+                            {
+                                <option value="@item.CompanyId">@item.CompanyName</option>
+                            }
+
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        
+
+                        <label for="RoleName">Role</label>
+                        <select class="form-control" name="RoleName" id="RoleName">
+                            <option selected="selected"></option>
+                            @foreach (var item in ViewBag.RoleName)
+                            {
+                                <option value="@item.Id">@item.Name</option>
+                            }
+
+                        </select>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Add</button>
+                <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;" onclick="Update();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+    
+
+    
+
+
+

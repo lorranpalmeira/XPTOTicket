@@ -1,0 +1,69 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<style>
+    ul li {
+        display:inline;
+        margin:0px;
+    }
+</style>
+<div class="jumbotron">
+    <h1>Universe Web</h1>
+    <p class="lead">A nova versão do Universe Web está disponível</p>
+    <p><a href="#" class="btn btn-primary btn-lg">Click here to download &raquo;</a></p>
+</div>
+
+
+<div>
+    <div id="feedback">
+        <h4>Avalie seu último Ticket</h4>
+        <input class="feedback_output" type="hidden">
+        <ul class="feedback_bar" >
+            <li class="feedback_starrating" x-score="1"><span class="glyphicon glyphicon-star"></span></li>
+            <li class="feedback_starrating" x-score="2"><span class="glyphicon glyphicon-star"></span></li>
+            <li class="feedback_starrating" x-score="3"><span class="glyphicon glyphicon-star"></span></li>
+            <li class="feedback_starrating" x-score="4"><span class="glyphicon glyphicon-star"></span></li>
+            <li class="feedback_starrating" x-score="5"><span class="glyphicon glyphicon-star"></span></li>
+        </ul>
+        <div class="feedback_comment_container">
+            <textarea id="feedback_comment_textarea" class="form-control longtext" rows="4"></textarea>
+        </div>
+        <a id="feedback_submit" class="btn btn-primary" href="#test">Submit Feedback</a><br />
+    </div>
+</div>
+
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/ratingsbar.js"></script>
+<script>
+    $("#feedback").feedback({
+
+        // REQUIRED
+        feedback_bar: "feedback_bar",
+
+        // initial rating value
+        deafault_score: 5,
+
+        // CSS selector
+        output: "feedback_output",
+
+        // comment area
+        comment_bar: {
+            container: "feedback_comment_container",
+            always_visible: false,
+            open_on: 3 // 3 stars
+        },
+
+        // icon classes
+        on_class: "glyphicon glyphicon-star",
+        off_class: "glyphicon glyphicon-star-empty"
+
+    });
+
+    
+    $("#feedback").click(function () {
+        alert("Clicou no Botão FeedBack");
+    });
+    
+</script>

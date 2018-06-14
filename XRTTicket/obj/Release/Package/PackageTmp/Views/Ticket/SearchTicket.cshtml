@@ -1,0 +1,70 @@
+﻿@model IList<XRTTicket.Models.Ticket.ViewModelTicket>
+@{
+    ViewBag.Title = "SearchTicket";
+    Layout = "~/Views/Shared/Ticket/_TicketSearch.cshtml" ;
+}
+
+
+
+
+
+@section Analyst {
+    
+@{ 
+    if (@User.IsInRole("Analyst") || @User.IsInRole("SuperAnalyst"))
+    {
+        <div class="row">
+
+           
+                <div class="form-group">
+                    <div class="col-xs-3 space">
+                        <label for="OpenBy">Open By </label>
+                        <select class="form-control" name="userId" id="OpenBy">
+                            <option selected="selected"></option>
+                            @foreach (var item in ViewBag.OpenBy)
+                            {
+                                <option value="@item.UserName">@item.UserName</option>
+                            }
+
+                        </select>
+                    </div>
+            </div>
+
+           
+                <div class="form-group">
+                    <div class="col-xs-3 space">
+                        <label for="AnalystDesignated">Analyst Designated </label>
+                        <select class="form-control" name="AnalystDesignated" id="AnalystDesignated">
+                            <option selected="selected"></option>
+                            @foreach (var item in ViewBag.Designated)
+                            {
+                                <option value="@item.UserName">@item.UserName</option>
+                            }
+
+                        </select>
+                    </div>
+            </div>
+
+           
+                <div class="form-group">
+                    <div class="col-xs-3 space">
+                        <label for="CompanyId">Company </label>
+                        <select class="form-control" name="CompanyId" id="CompanyId">
+                            <option selected="selected"></option>
+                            @foreach (var item in ViewBag.Company)
+                            {
+                                <option value="@item.CompanyId">@item.CompanyName</option>
+                            }
+
+                        </select>
+                    </div>
+            </div>
+
+        </div>
+        }
+    }
+
+
+
+}
+

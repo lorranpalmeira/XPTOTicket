@@ -1,0 +1,537 @@
+create or replace PACKAGE BODY sage_itf
+IS
+    --
+    -- Processa os lançamentos da tabela mov_aberto_itf
+    -- Aplica os deparas e validacoes para as interfaces
+    -- Consultor Funcional: Doniseti Machado
+    -- Cliente: Seguros Unimed
+    --
+    -- MODIFICATION HISTORY
+    -- Person       Date            Comments
+    -- ---------    ------          -------------------------------------------
+    -- Pezetta      10/11/2015      Criação
+
+
+    --- Variaveis publicas
+    mcode               NUMBER;
+    merrm               VARCHAR2 (600);
+    mcount              NUMBER;
+    mtdp_codigo         tipo_de_documento_pagador.tdp_codigo%TYPE;
+    logid               NUMBER;
+    mban_codigo         mov_aberto.ban_codigo%TYPE;
+    mage_codigo         mov_aberto.age_codigo%TYPE;
+    mcnt_codigo         mov_aberto.cnt_codigo%TYPE;
+    motivo              VARCHAR2 (200);
+    mpfj_codigo         mov_aberto.pfj_codigo%TYPE;
+    mmmi_codigo         mov_aberto.mmi_codigo%TYPE;
+    mask_age            banco.mascara_agencia%TYPE;
+    mask_cnt            banco.mascara_conta%TYPE;
+    mcec_codigo         mov_aberto.cec_codigo%TYPE;
+    mmvacontador        mov_aberto.mva_contador%TYPE;
+    morigem_sistema     mov_aberto.origem_sistema%TYPE;
+    mtemperatura        mov_aberto.temperatura%TYPE;
+    mefetiva_real       syn_sistema_externo.efetiva_real%TYPE;
+    mefetiva_previsto   syn_sistema_externo.efetiva_previsto%TYPE;
+    mvc_id              NUMBER;
+    mlot_numero         mov_aberto.lot_numero%TYPE;
+    v_mmi_ent_sai       conta_financeira.mmi_ent_sai%TYPE;
+    v_ent_sai           tipo_de_documento_pagador.ent_sai%TYPE;
+
+    PROCEDURE sage_pre_efetiva_itf
+    IS
+    -- Main
+    BEGIN
+        SELECT   seq_lot_numero.NEXTVAL INTO mlot_numero FROM DUAL;
+
+        FOR l_mva IN (  SELECT   *
+                          FROM   mov_aberto_itf
+                         WHERE   NVL (imported_flag, 'N') = 'N'
+                      ORDER BY   mva_contador_itf)
+        LOOP
+            motivo := '/';
+
+            /* Pezetta - 21/01/16
+            -- Esta rotina foi desabilitada na SGU devido ao envio da temperatura pelo GEM'
+            --- Verifico a origem_sistema
+            IF (l_mva.origem_sistema = 'AP' and l_mva.temperatura < 0)
+            THEN
+                morigem_sistema := 'AP';
+                mtemperatura := '-1';
+            ELSIF (l_mva.origem_sistema = 'AR' and l_mva.temperatura < 0)
+            THEN
+                morigem_sistema := 'AR';
+                mtemperatura := '-1';
+            ELSIF (l_mva.origem_sistema = 'AP' and l_mva.temperatura >= 0)
+            THEN
+                morigem_sistema := 'AP';
+
+                BEGIN
+                    SELECT temperatura_do_previsto
+                      INTO mtemperatura
+                      FROM syn_sistema_externo
+                     WHERE origem_sistema = morigem_sistema;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND
+                    THEN
+                        mtemperatura := '1';
+                END;
+            ELSIF (l_mva.origem_sistema = 'AR' and l_mva.temperatura >= 0)
+            THEN
+                morigem_sistema := 'AR';
+
+                BEGIN
+                    SELECT temperatura_do_previsto
+                      INTO mtemperatura
+                      FROM syn_sistema_externo
+                     WHERE origem_sistema = morigem_sistema;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND
+                    THEN
+                        mtemperatura := '1';
+                END;
+            ELSIF l_mva.origem_sistema = 'PO'
+            THEN
+                morigem_sistema := 'PO';
+
+                BEGIN
+                    SELECT temperatura_do_previsto
+                      INTO mtemperatura
+                      FROM syn_sistema_externo
+                     WHERE origem_sistema = morigem_sistema;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND
+                    THEN
+                        mtemperatura := '4';
+                END;
+            END IF;
+            */
+            --De-paras:
+            -- Centro de Custos:
+            /*
+            IF TRIM (l_mva.cec_codigo) IS NOT NULL
+            THEN
+                mcec_codigo := TRIM (l_mva.cec_codigo);
+
+                SELECT COUNT (*)
+                  INTO mcount
+                  FROM centro_de_custo
+                 WHERE cec_codigo = mcec_codigo;
+
+                IF mcount = 0
+                THEN
+                    BEGIN
+                        INSERT
+                          INTO centro_de_custo (cec_codigo, nome, status)
+                        VALUES (mcec_codigo, 'Classificar', 'A');
+                    EXCEPTION
+                        WHEN OTHERS
+                        THEN
+                            NULL;
+                    END;
+                END IF;
+            ELSE
+                mcec_codigo := NULL;
+            END IF;
+            */
+            -- Conta Corrente:
+            --- Aplicar o De_para de Conta Corrente
+            IF TRIM (l_mva.ban_codigo) IS NOT NULL
+            THEN
+                BEGIN
+                    SELECT   ban_codigo, age_codigo, cnt_codigo
+                      INTO   mban_codigo, mage_codigo, mcnt_codigo
+                      FROM   sage_depara_cta_corrente
+                     WHERE       banco_erp = l_mva.ban_codigo
+                             AND agencia_erp = l_mva.age_codigo
+                             AND cta_corrente_erp = l_mva.cnt_codigo;
+                EXCEPTION
+                    WHEN NO_DATA_FOUND
+                    THEN
+                        mban_codigo := l_mva.ban_codigo;
+                        mage_codigo := l_mva.age_codigo;
+                        mcnt_codigo := l_mva.cnt_codigo;
+                END;
+
+                -- Vou ver se a conta eh valida:
+                -- Vou aplicar as mascaras:
+
+                mban_codigo := fmtmaskvar (mban_codigo, '999', 1);
+
+                BEGIN
+                    SELECT   mascara_agencia, mascara_conta
+                      INTO   mask_age, mask_cnt
+                      FROM   banco
+                     WHERE   ban_codigo = mban_codigo;
+
+                    mage_codigo := fmtmask (mage_codigo, mask_age);
+                    mcnt_codigo := fmtmask (mcnt_codigo, mask_cnt);
+                EXCEPTION
+                    WHEN OTHERS
+                    THEN
+                        NULL;
+                END;
+
+
+                SELECT   COUNT ( * )
+                  INTO   mcount
+                  FROM   conta_corrente
+                 WHERE       ban_codigo = mban_codigo
+                         AND age_codigo = mage_codigo
+                         AND cnt_codigo = mcnt_codigo;
+
+                IF mcount = 0
+                THEN
+                    -- Conta nao encontrada!
+                    -- Vou inserir na tabela DePara
+                    /* BEGIN
+                         INSERT
+                           INTO sage_depara_cta_corrente (banco_erp,
+                                                          agencia_erp,
+                                                          cta_corrente_erp,
+                                                          ban_codigo,
+                                                          age_codigo,
+                                                          cnt_codigo)
+                         VALUES (l_mva.ban_codigo,
+                                 l_mva.age_codigo,
+                                 l_mva.cnt_codigo,
+                                 'XXX',
+                                 'XXXXXX',
+                                 'XXXXXXX');
+                     EXCEPTION
+                         WHEN OTHERS
+                         THEN
+                             NULL;
+                     END;
+                     */
+                    --insere := False;
+                    motivo := motivo || 'Conta Bancaria' || '/';
+                END IF;
+            ELSE
+                mban_codigo := TRIM (l_mva.ban_codigo);
+                mage_codigo := TRIM (l_mva.age_codigo);
+                mcnt_codigo := TRIM (l_mva.cnt_codigo);
+            END IF;
+
+
+            BEGIN
+                SELECT   seq_mva.NEXTVAL INTO mmvacontador FROM DUAL;
+
+
+                mtdp_codigo := l_mva.tdp_codigo;
+
+                -- PEGO O SENTIDO DA CONTA FINANCEIRA
+                SELECT   mmi_ent_sai
+                  INTO   v_mmi_ent_sai
+                  FROM   conta_financeira
+                 WHERE   mmi_codigo = TRIM (l_mva.mmi_codigo);
+
+                --- PEGO O SENTIDO DO ISTRUMENTO
+                SELECT   ent_sai
+                  INTO   v_ent_sai
+                  FROM   tipo_de_documento_pagador
+                 WHERE   tdp_codigo = mtdp_codigo;
+
+                -- SE CASO ESTEJAM COM SENTIDO DIFERENTES...
+                IF v_mmi_ent_sai <> v_ent_sai
+                THEN
+                    --TROCA O INTRUMENTO 'DEV' COLOCANDO-O NO MESMO SENTIDO DA CONTA FINANCEIRA.
+                    mtdp_codigo :=
+                        CASE
+                            WHEN UPPER (v_mmi_ent_sai) = 'E' THEN 'DEV+'
+                            ELSE 'DEV-'
+                        END;
+                END IF;
+
+
+                INSERT INTO mov_aberto (mva_contador,
+                                        cec_codigo,
+                                        mmi_transferencia,
+                                        codigo_barras,
+                                        data_bloqueto,
+                                        valor_bloqueto,
+                                        acrescimos_bloqueto,
+                                        descontos_bloqueto,
+                                        multa_bloqueto,
+                                        descontos2_bloqueto,
+                                        descricao_bloqueto,
+                                        pfj_nome,
+                                        pfj_endereco,
+                                        pfj_numero,
+                                        pfj_cep,
+                                        pfj_complemento,
+                                        pfj_cpf,
+                                        pfj_uf,
+                                        pfj_descricao,
+                                        pfj_cidade,
+                                        pfj_tipo,
+                                        ban_codigo,
+                                        age_codigo,
+                                        cnt_codigo,
+                                        tdp_codigo,
+                                        doc_pagador,
+                                        prefix_doc_pagador,
+                                        emitido_flag,
+                                        man_aut,
+                                        ban_emitente,
+                                        age_emitente,
+                                        cnt_emitente,
+                                        pfj_codigo,
+                                        pfj_emitente,
+                                        tdo_codigo,
+                                        ind_codigo_real,
+                                        valor_original,
+                                        valor,
+                                        lot_numero,
+                                        doc_origem,
+                                        historico,
+                                        mmi_reciprocidade,
+                                        data_efetivacao,
+                                        data_contabilizacao,
+                                        conta_contabil,
+                                        tipo_bloqueio,
+                                        temperatura,
+                                        origem_sistema,
+                                        origem_pk,
+                                        taxa_conversao_corr,
+                                        taxa_conversao_cnt,
+                                        pfj_origem_destino,
+                                        mmi_codigo,
+                                        cnc_emitente,
+                                        informacoes_contabeis,
+                                        conta_contabil_transferencia,
+                                        status,
+                                        finalidade,
+                                        data_caixa,
+                                        data_competencia,
+                                        ind_codigo_ccc,
+                                        data_pagamento,
+                                        controle_interno,
+                                        origem_processo,
+                                        taxa_conversao_corr_fixa,
+                                        taxa_conversao_cnt_fixa,
+                                        origem_contabil,
+                                        mmi_ent_sai,
+                                        job_id,
+                                        autorizado_0_por,
+                                        autorizado_1_por,
+                                        autorizado_0_em,
+                                        autorizado_1_em,
+                                        dff_01,
+                                        dff_02,
+                                        dff_03,
+                                        dff_04,
+                                        dff_05,
+                                        moeda_codigo,
+                                        lido_flag)
+                  VALUES   (mmvacontador,
+                            l_mva.cec_codigo,                   --mcec_codigo,
+                            l_mva.mmi_transferencia,
+                            TRIM (l_mva.codigo_barras),
+                            l_mva.data_bloqueto,
+                            l_mva.valor_bloqueto,
+                            l_mva.acrescimos_bloqueto,
+                            l_mva.descontos_bloqueto,
+                            l_mva.multa_bloqueto,
+                            l_mva.descontos2_bloqueto,
+                            l_mva.descricao_bloqueto,
+                            l_mva.pfj_nome,
+                            l_mva.pfj_endereco,
+                            l_mva.pfj_numero,
+                            l_mva.pfj_cep,
+                            l_mva.pfj_complemento,
+                            format_cgc (TRIM (l_mva.pfj_cpf)),
+                            l_mva.pfj_uf,
+                            l_mva.pfj_descricao,
+                            l_mva.pfj_cidade,
+                            NVL (TRIM (l_mva.pfj_tipo), '4'),
+                            mban_codigo,
+                            mage_codigo,
+                            mcnt_codigo,
+                            mtdp_codigo,
+                            RIGHT(l_mva.doc_pagador,15),
+                            l_mva.prefix_doc_pagador,
+                            NVL (l_mva.emitido_flag, 'N'),
+                            NVL (l_mva.man_aut, 'N'),
+                            l_mva.ban_emitente,
+                            l_mva.age_emitente,
+                            l_mva.cnt_emitente,
+                            l_mva.pfj_codigo,                   --mpfj_codigo,
+                            l_mva.pfj_emitente,
+                            l_mva.tdo_codigo,
+                            NULL,                     --l_mva.ind_codigo_real,
+                            NVL (l_mva.valor_original, 0),
+                            NVL (l_mva.valor, 0),
+                            mlot_numero,                   --l_mva.lot_numero,
+                            RIGHT(l_mva.doc_origem,15),
+                            l_mva.historico,
+                            l_mva.mmi_reciprocidade,
+                            l_mva.data_efetivacao,
+                            l_mva.data_contabilizacao,
+                            l_mva.conta_contabil,
+                            l_mva.tipo_bloqueio,
+                            l_mva.temperatura,
+                            l_mva.origem_sistema,
+                            l_mva.origem_pk,
+                            l_mva.taxa_conversao_corr,
+                            l_mva.taxa_conversao_cnt,
+                            NULL,                  --l_mva.pfj_origem_destino,
+                            TRIM (l_mva.mmi_codigo),
+                            l_mva.cnc_emitente,
+                            l_mva.informacoes_contabeis,
+                            l_mva.conta_contabil_transferencia,
+                            l_mva.status,
+                            l_mva.finalidade,
+                            l_mva.data_caixa,
+                            NVL (l_mva.data_competencia,
+                                 l_mva.data_pagamento),
+                            l_mva.ind_codigo_ccc,
+                            l_mva.data_pagamento,
+                            l_mva.controle_interno,
+                            'EMA',                   -- l_mva.origem_processo,
+                            NVL (l_mva.taxa_conversao_corr_fixa, 'N'),
+                            NVL (l_mva.taxa_conversao_cnt_fixa, 'N'),
+                            l_mva.origem_contabil,
+                            l_mva.mmi_ent_sai,
+                            l_mva.job_id,
+                            l_mva.autorizado_0_por,
+                            l_mva.autorizado_1_por,
+                            l_mva.autorizado_0_em,
+                            l_mva.autorizado_1_em,
+                            l_mva.dff_01,
+                            l_mva.dff_02,
+                            l_mva.dff_03,
+                            l_mva.dff_04,                            --motivo,
+                            l_mva.dff_05,
+                            l_mva.moeda_codigo,
+                            'N');
+
+
+
+                UPDATE   mov_aberto_itf
+                   SET   imported_flag = 'S',
+                         imported_process = SYSDATE,
+                         imported_at = SYSDATE,
+                         mva_contador = mmvacontador
+                 WHERE   mva_contador_itf = l_mva.mva_contador_itf;
+
+                COMMIT;
+
+                --UPDATE MOV_ABERTO_ITF  SET imported_flag = 'N' WHERE MVA_CONTADOR IS null AND MVA_CONTADOR_ITF = l_mva.mva_contador_itf; COMMIT;
+                  -- caso registros apresentem o problema de serem flegados com S sem serem consumidos descomentar a linha acima.
+            EXCEPTION
+                WHEN OTHERS
+                THEN
+                    mcode := SQLCODE;
+                    merrm := SQLERRM;
+                    logid := get_contador ('r');
+
+
+                    UPDATE   mov_aberto_itf
+                       SET   imported_flag = 'E',
+                             imported_process = SYSDATE,
+                             imported_at = SYSDATE,
+                             error_log = merrm
+                     WHERE   mva_contador_itf = l_mva.mva_contador_itf;
+            END;
+        END LOOP;
+    END;
+
+    --------------------------------------------------------------------
+    PROCEDURE sage_efetiva_itf
+    IS
+    BEGIN
+        --   Vamos efetivar os movimentos na base
+        --DELETE   log_efetiva_lote
+         --WHERE   mva_contador NOT IN (SELECT   mva_contador
+                                    --    FROM   mov_aberto
+                                       --WHERE   origem_sistema <> 'GEF');
+
+        FOR l_mva IN (SELECT   mva.*,  decode(mva.temperatura,-1, 1,0) consolidar_bancario
+                        FROM   mov_aberto mva
+                       WHERE   mva.origem_sistema <> 'GEF' AND mva.lido_flag = 'N')
+        LOOP
+            BEGIN
+                SELECT   efetiva_real, efetiva_previsto
+                  INTO   mefetiva_real, mefetiva_previsto
+                  FROM   syn_sistema_externo
+                 WHERE   origem_sistema = l_mva.origem_sistema;
+            EXCEPTION
+                WHEN OTHERS
+                THEN
+                    mefetiva_real := 'A';
+                    mefetiva_previsto := 'A';
+            END;
+
+            IF (l_mva.temperatura = -1 AND mefetiva_real = 'E')
+               OR (l_mva.temperatura <> -1 AND mefetiva_previsto = 'E')
+            THEN
+                BEGIN
+                    mvc_id := efetiva_mov_c (l_mva.mva_contador,  l_mva.consolidar_bancario);
+                EXCEPTION
+                    WHEN OTHERS
+                    THEN
+                        mcode := SQLCODE;
+                        merrm := SQLERRM;
+                        logid := get_contador ('r');
+						
+						ROLLBACK;
+
+                        INSERT INTO log_efetiva_lote (log_contador,
+                                                      mva_contador,
+                                                      lot_numero,
+                                                      valor,
+                                                      historico,
+                                                      data_efetivacao,
+                                                      data_processamento,
+                                                      code,
+                                                      errm,
+                                                      origem_pk)
+                          VALUES   (logid,
+                                    l_mva.mva_contador,
+                                    l_mva.lot_numero,
+                                    l_mva.valor,
+                                    l_mva.historico,
+                                    l_mva.data_efetivacao,
+                                    SYSDATE,
+                                    mcode,
+                                    motivo || merrm,
+                                    l_mva.origem_pk);
+
+                        COMMIT;
+                END;
+            END IF;
+
+            UPDATE   mov_aberto
+               SET   lido_flag = 'S'
+             WHERE   mva_contador = l_mva.mva_contador;
+        END LOOP;
+    END;
+
+    ---------------------------------------------------------------------
+    PROCEDURE sage_limpa_itf_log
+    IS
+        --- Variaveis de Ambiente
+        v_data   DATE;
+    BEGIN
+        SELECT   SYSDATE INTO v_data FROM DUAL;
+
+        --- Limpeza da log
+        DELETE   sage_movimentos_log
+         WHERE   data_pagamento <= v_data - 90;
+
+        --- Limpeza das Tabelas de Interface
+        DELETE   mov_aberto_itf                                 --- Financeira
+         WHERE   data_pagamento <= v_data - 90 AND imported_flag = 'S';
+
+        COMMIT;
+    END;                                                --- Final da Procedure
+
+    ---------------------------------------------------------------------
+    PROCEDURE sage_interface
+    IS
+    BEGIN
+        sage_itf.sage_pre_efetiva_itf;
+        sage_itf.sage_efetiva_itf;
+        sage_itf.sage_limpa_itf_log;
+    END;
+END;

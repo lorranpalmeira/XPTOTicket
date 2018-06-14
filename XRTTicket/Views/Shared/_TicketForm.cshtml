@@ -1,0 +1,160 @@
+﻿@model XRTTicket.Models.Ticket.ViewModelTicket
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = ViewBag.Title;
+    string url = ViewBag.Url;
+
+}
+
+
+
+
+
+<link href="~/Content/Ticket/TicketStyle.css" rel="stylesheet" />
+@RenderBody()
+
+@using (Html.BeginForm(url, "Ticket", new { id = "formTicket", @class = "form-horizontal" }, FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    
+        <div class="form-group left-margin bottom-margin">
+
+            <div class="row">
+                <div class="col-xs-3 space" id="div-id">
+                    @Html.LabelFor(m => m.TicketId, "Ticket ID")
+                    @Html.TextBoxFor(m => m.TicketId, new { @class = "form-control ", @readonly = "readonly", id = "ticketId" })
+                    @Html.ValidationMessageFor(m => m.TicketId, "", new { @class = "text-danger" })
+                    <label id="message-id"></label>
+                </div>
+                <div class="col-xs-3 space" id="div-tickettype">
+                    @Html.LabelFor(m => m.TicketTypeId, "Type")
+                    @Html.DropDownList("TicketTypeId", null, htmlAttributes: new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.TicketTypeId, "", new { @class = "text-danger" })
+                    <label id="message-tickettype"></label>
+                </div>
+
+
+                <div class="col-xs-3 space" id="div-priority">
+                    @Html.LabelFor(m => m.PriorityId, "Priority")
+                    @Html.DropDownList("PriorityId", null, htmlAttributes: new { @class = "form-control has-feedback", aria_describedby = "inputSuccess2Status" })
+                    @Html.ValidationMessageFor(m => m.PriorityId, "", new { @class = "text-danger" })
+                    <label id="message-priority"></label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="form-group  left-margin bottom-margin">
+            <div class="row">
+                <div class="col-xs-3 space" id="div-product">
+                    @Html.LabelFor(m => m.ProductId, "Product")
+                    @Html.DropDownList("ProductId", null, htmlAttributes: new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.ProductId, "", new { @class = "text-danger" })
+                    <label id="message-product"></label>
+                </div>
+
+
+                <div class="col-xs-3 space" id="div-subproduct">
+                    @Html.LabelFor(m => m.SubProductId, "Sub Product")
+                    @Html.DropDownList("SubProductId", null, htmlAttributes: new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.SubProductId, "", new { @class = "text-danger" })
+                    <label id="message-subproduct"></label>
+                </div>
+
+                <div class="col-xs-3 space" id="div-task">
+                    @Html.LabelFor(m => m.TaskId, "Task")
+                    @Html.DropDownList("TaskId", null, htmlAttributes: new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.TaskId, "", new { @class = "text-danger" })
+                    <label id="message-task"></label>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="form-group  left-margin bottom-margin">
+            <div class="row">
+                <div class="col-xs-3 space" id="div-version">
+                    @Html.LabelFor(m => m.VersionId, "Version")
+                    @Html.DropDownList("VersionId", null, htmlAttributes: new { @class = "form-control", required = "required" })
+                    @Html.ValidationMessageFor(m => m.VersionId, "", new { @class = "text-danger" })
+                    <label id="message-version"></label>
+                </div>
+
+                @RenderSection("Status", false)
+                @RenderSection("SlaExpire", false)
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="row">
+                @RenderSection("Designated", false)
+                @RenderSection("IdExternal", false)
+                @RenderSection("Duplicate", false)
+
+            </div>
+        </div>
+
+        @RenderSection("IsLike", false)
+
+
+        <div class="form-group bottom-margin" id="div-title">
+            @Html.LabelFor(m => m.Title, "Title")
+            @Html.TextBoxFor(m => m.Title, new { @class = "form-control col-md-12", id = "field-title" })
+            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "fail" })
+            <label id="message-title"></label>
+        </div>
+
+
+        <div class="form-group bottom-margin" id="div-description">
+            @RenderSection("DescriptionLabel", false)
+            <textarea class="form-control form-control-sm" name="description" , id="field-description" rows="8"></textarea>
+            <label id="message-description"></label>
+        </div>
+
+        @RenderSection("SendToUser", false)
+
+        <br />
+
+        <div class="form-group">
+          
+            <label for="Files">File Input</label>
+            <br />
+            
+            <input type="file" name="file" id="file"/> 
+            
+        </div>
+
+        <input type="submit" class="btn btn-default" value="Submit" id="btn-submit" disabled />
+
+        <div class="margim-element">
+
+        </div>
+   
+
+
+@RenderSection("Iterations", false)
+
+    
+}
+
+
+
+
+@section Scripts{
+    
+<script src="~/Scripts/Ticket/AddUpdateTicket.js"></script>
+@RenderSection("Scripts", true)
+
+<script>
+    var urlGetVersion = '@Url.Action("GetVersion","GetAll")';
+    var urlGetSubProducts = '@Url.Action("GetSubProducts","GetAll")';
+    var urlGetTask = '@Url.Action("GetTask", "GetAll")';
+</script>
+    
+}
